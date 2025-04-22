@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voting-app
+  labels:
+    app: voting-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voting-app
+  template:
+    metadata:
+      labels:
+        app: voting-app
+    spec:
+      containers:
+      - name: voting-app
+        image: ${DOCKER_REGISTRY}/${OPENSHIFT_NAMESPACE}/voting-app:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting-app
+spec:
+  selector:
+    app: voting-app
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: voting-app
+spec:
+  to:
+    kind: Service
+    name: voting-app
+  port:
+    targetPort: 8080
